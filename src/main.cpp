@@ -3,115 +3,24 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "config.h"
+#include "connection.h"
+#include "Breather.h"
 // Function prototypes
 void dispense(int *servo);
 void shakeBottom(int *servo);
 void moveTo(int *servo, int position, int duration);
 void handleMqttMessage(char* topic, byte* payload, unsigned int length);
-void flashLed(int repetitions, int on_duration, int off_duration);
-void setup_wifi();
-void reconnect();
 void detect_collection(); 
-void detect_collection2();
 int step_value = 0;
-int collection_value = 400000; 
+int collection_value = 0;
 
-bool uncolleted = false;
+bool uncollected = false;
 int detectionCount = 0;
 unsigned long firstDetectionTime = 0;
 unsigned long secondDetectionTime = 0;
 
-WiFiClient espClient;
-PubSubClient client(espClient);
-
 // Declare a global servo object
 Servo currentServo;
-class Breather
-{
-private:
-  int pin;
-  int maxBrightness = 255;
-  unsigned long phaseShift;
-  unsigned long halfPeriod;
-  unsigned long previousTime = 0;
-
-public:
-  enum BreatheState
-  {
-    OFF,
-    BREATHING_CONTINUOUSLY,
-    BREATHE_ONCE
-  } state = OFF;
-
-  Breather(int pin) : pin(pin) {}
-
-  void initialize()
-  {
-    pinMode(pin, OUTPUT);
-    analogWrite(pin, 0); // LED OFF for a clear start
-    phaseShift = 0;      // Reset phase shift
-  }
-
-  void update()
-  {
-    if (state != OFF)
-    {
-      unsigned long time = (millis() - phaseShift) % (2 * halfPeriod);
-
-      if (state == BREATHE_ONCE && previousTime > time) // means it has looped over
-      {
-        state = OFF;
-        analogWrite(pin, 0); // LED OFF
-        Serial.println(getName() + " finished a cycle and set to OFF state.");
-        return;
-      }
-
-      int brightness;
-      if (time < halfPeriod)
-      {
-        brightness = maxBrightness * time / halfPeriod;
-      }
-      else
-      {
-        brightness = maxBrightness * (2 * halfPeriod - time) / halfPeriod;
-      }
-      analogWrite(pin, brightness); // Adjust the brightness
-
-      previousTime = time;
-    }
-    else
-    {
-      analogWrite(pin, 0); // LED OFF
-    }
-  }
-
-  void startBreathing(int cycleDuration, unsigned long delay = 0)
-  {
-    state = BREATHING_CONTINUOUSLY;
-    halfPeriod = cycleDuration / 2;
-    phaseShift = millis() - delay;
-  }
-
-  void stopBreathing()
-  {
-    state = OFF;
-    analogWrite(pin, 0); // LED OFF
-  }
-
-  void breatheOnce(int cycleDuration, unsigned long startDelay = 0)
-  {
-    analogWrite(pin, 0); // Ensure the LED starts from 0
-    state = BREATHE_ONCE;
-    halfPeriod = cycleDuration / 2;
-    phaseShift = millis() + startDelay - halfPeriod; // Adjust phaseShift to account for delay
-    Serial.println(getName() + " set to BREATHE_ONCE state with a start delay of " + String(startDelay));
-  }
-
-  String getName() const
-  {
-    return "Breather at pin " + String(pin);
-  }
-};
 
 #define RED_LED_PIN 4
 #define WHITE_LED_PIN 5
@@ -172,10 +81,7 @@ void setup()
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(handleMqttMessage);
 
-  // Use the new setup_wifi function for WiFi connection
   setup_wifi();
-
-  // Use the new reconnect function for MQTT connection
   reconnect();
 
 
@@ -185,27 +91,22 @@ void setup()
 }
 
 
-
 void loop()
 {
+  if (!client.connected())
+  {
+    reconnect();
+  }
   redBreather.update();
   whiteBreather.update();
   client.loop();
-  if (uncolleted) {
+  if (uncollected) {
     detect_collection();
   }
+  delay(20);
 }
-void detect_collection(){
-  step_value = analogRead(SENSOR_PIN);
-  collection_value = 100*step_value+0.999*collection_value;
-  if (collection_value > 550000){
-    Serial.println("Collection detected");
-    uncolleted = false;
-    collection_value = 400000;
-    redBreather.stopBreathing();
-    whiteBreather.stopBreathing();
-  }
-}
+
+
 
 void handleMqttMessage(char* topic, byte* payload, unsigned int length) {
   Serial.println("Command received");
@@ -279,6 +180,25 @@ void shakeBottom(int *servo){
   }
 }
 
+void detect_collection()
+{
+  step_value = analogRead(SENSOR_PIN);
+  if (step_value < 14)
+  {
+    step_value = 0;
+  }
+  collection_value = 10 * step_value + 0.95 * collection_value;
+  Serial.println(collection_value);
+  if(collection_value > collection_threshold)
+  {
+    Serial.println("Collection detected");
+    client.publish("pilldispenser/state", "ready");
+    uncollected = false;
+    collection_value = 0;
+    redBreather.stopBreathing();
+    whiteBreather.stopBreathing();
+  }
+}
 
 bool dropSense(int *servo) {
   //pre drop location is LARGER
@@ -297,18 +217,16 @@ bool dropSense(int *servo) {
 
   bool dropped = false;
 
-  int loopdelay = 2;
-  int maxLoopStep = duration / loopdelay;
-
   // First loop: Read and move for 1/2 second
   for (int i = 0; i < 20; i++) {
     // Read sensor value and move servo
     int sensorValue = analogRead(SENSOR_PIN);
+    Serial.println(sensorValue);
     int pos = preDropLocation - deltaPos * ((float)i / (float)20);
     currentServo.write(pos);
 
     // Check if threshold is reached
-    if (sensorValue > threshold) {
+    if (sensorValue > drop_threshold) {
       Serial.println("DROP");
       dropped = true;
       break;
@@ -317,17 +235,16 @@ bool dropSense(int *servo) {
 
   // Second loop: Read only, Skip when already dropped.
   if (!dropped) {
-    for (int i = 0; i <= maxLoopStep; i++) {
+    for (int i = 0; i <= (duration*2); i++) {
       int sensorValue = analogRead(SENSOR_PIN);
+      Serial.println(sensorValue);
 
       // Check if threshold is reached
-      if (sensorValue > threshold) {
+      if (sensorValue > drop_threshold) {
         Serial.println("DROP");
         dropped = true;
         break;
       }
-
-      delay(loopdelay);
     }
   }
 
@@ -351,9 +268,8 @@ bool dropSense(int *servo) {
       if (dropSense(servo))
       {
         Serial.println("Dispensed!");
-        uncolleted = true;
+        uncollected = true;
         start_breathing(redBreather, 4000, &whiteBreather, 2000, 1000);
-
         client.publish("pilldispenser/state", "Pills ready");
         delay(100);
         return;
@@ -363,67 +279,4 @@ bool dropSense(int *servo) {
     Serial.println("Error: Pill dispenser empty!");
     client.publish("pilldispenser/state", "Dispense Error");
     redBreather.startBreathing(200);
-  }
-
-  void flashLed(int repetitions, int on_duration, int off_duration = 0)
-  {
-    for (int i = 0; i < repetitions; i++)
-    {
-      digitalWrite(LED_BUILTIN, HIGH); // Turn on the LED
-      delay(on_duration);
-      digitalWrite(LED_BUILTIN, LOW); // Turn off the LED
-      delay(off_duration);
-    }
-  }
-
-  void setup_wifi()
-  {
-    delay(10);
-    Serial.println();
-    Serial.print("Connecting to ");
-    Serial.println(ssid);
-
-    WiFi.begin(ssid, password);
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-      Serial.print(".");
-      flashLed(1, 100, 500); // Blink once every 500ms while trying to connect to WiFi
-    }
-
-    flashLed(3, 100, 100); // Blink 3 times if connected to WiFi
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-  }
-
-  void reconnect()
-  {
-    while (!client.connected())
-    {
-      Serial.print("Attempting MQTT connection... ");
-      if (client.connect("pilldispenser", mqtt_user, mqtt_pass))
-      {
-        Serial.println("connected");
-        flashLed(3, 300, 300); // Flash the built-in LED 3 times after connecting
-        client.subscribe("pilldispenser/commands");
-        client.publish("pilldispenser/state", "ready");
-      }
-      else
-      {
-        Serial.print("Failed to connect, rc=");
-        Serial.print(client.state());
-        Serial.println(" try again in 5 seconds");
-        flashLed(2, 100, 400); // Blink twice if failed to connect
-        if (client.state() == -2)
-        {
-          Serial.println("Network unreachable, redoing WiFi setup...");
-          WiFi.disconnect(); // Disconnect from the WiFi network
-          delay(1000);       // Wait for a while
-          setup_wifi();      // Redo the WiFi setup
-        }
-        delay(2000);
-      }
-    }
   }

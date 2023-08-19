@@ -7,13 +7,13 @@ const int RED_LED_PIN = D2;
 const int WHITE_LED_PIN = D1;
 
 // Threshold value for triggering the sensor
-const int threshold = 15;
+const int drop_threshold = 20;
+const int collection_threshold = 1000;
 
 const int lowestPWM = 415;
 const int highestPWM = 2575;
 
 const int rotationBeforeDrop = 15;
-
 
 const int maxRate = 3;
 
@@ -25,7 +25,7 @@ const int maxRate = 3;
 //                   PIN         LOWEST      PREDROP     DROP        LASTPOS     SHAKEDIST   FALLDURATION
 int zinc[] =        {D5,         180,        30,         2,          0,          22,         2400};
 int omega[] =       {D6,         180,        40,         0,          0,          30,         1600};
-int magnesium[] =   {D7,         180,        30,         10,         0,          30,         1200};
+int magnesium[] =   {D7,         180,        30,         12,         0,          30,         1200};
 
 // PIN: Where the Servo PWM Pin is connected.
 // LOWEST: Lowest Position  of the disk in degrees. 180 normally is the lowest Point, 0 is the highest.
