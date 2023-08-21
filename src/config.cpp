@@ -1,6 +1,15 @@
 #include "config.h"
 #include <ESP8266WiFi.h>
 
+//! IMPORTANT! RENAME!
+const char *MQTT_DEVICE_NAME = "pilldispenser";
+
+// Construct topics using String and then convert back to const char*
+String sCommandTopic = String(MQTT_DEVICE_NAME) + "/commands";
+String sStateTopic = String(MQTT_DEVICE_NAME) + "/state";
+const char *commandTopic = sCommandTopic.c_str();
+const char *stateTopic = sStateTopic.c_str();
+
 // Pin to which the sensor is connected
 const int SENSOR_PIN = A0;
 const int RED_LED_PIN = D2;

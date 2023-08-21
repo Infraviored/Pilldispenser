@@ -44,12 +44,14 @@ void flashLed(int repetitions, int on_duration, int off_duration)
     while (!client.connected())
     {
       Serial.print("Attempting MQTT connection... ");
-      if (client.connect("pilldispenser", mqtt_user, mqtt_pass))
+      if (client.connect(MQTT_DEVICE_NAME, mqtt_user, mqtt_pass))
       {
         Serial.println("connected");
         flashLed(3, 300, 300); // Flash the built-in LED 3 times after connecting
-        client.subscribe("pilldispenser/commands");
-        client.publish("pilldispenser/state", "ready");
+
+        // Directly use the global constants
+        client.subscribe(commandTopic);
+        client.publish(stateTopic, "ready");
       }
       else
       {
@@ -68,3 +70,4 @@ void flashLed(int repetitions, int on_duration, int off_duration)
       }
     }
   }
+  

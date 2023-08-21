@@ -106,39 +106,48 @@ void loop()
   delay(20);
 }
 
-
-
-void handleMqttMessage(char* topic, byte* payload, unsigned int length) {
+void handleMqttMessage(char *topic, byte *payload, unsigned int length)
+{
   Serial.println("Command received");
   String message = "";
   for (unsigned int i = 0; i < length; i++)
   {
     message += (char)payload[i];
   }
-  if (strcmp(topic, "pilldispenser/commands") == 0) {
-    if (message == "dispense_zinc") {
+
+  // Use the global constant for topic comparison
+  if (strcmp(topic, commandTopic) == 0)
+  {
+    if (message == "dispense_zinc")
+    {
       Serial.println("Dispense zinc");
-      client.publish("pilldispenser/state", "dispensing Zinc");
+      client.publish(stateTopic, "dispensing Zinc");
       dispense(zinc);
-    } else if (message == "dispense_omega") {
-      client.publish("pilldispenser/state", "dispensing Omega");
+    }
+    else if (message == "dispense_omega")
+    {
+      client.publish(stateTopic, "dispensing Omega");
       Serial.println("Dispense omega");
       dispense(omega);
-    } else if (message == "dispense_magnesium") {
-      client.publish("pilldispenser/state", "dispensing Magnesium");
+    }
+    else if (message == "dispense_magnesium")
+    {
+      client.publish(stateTopic, "dispensing Magnesium");
       Serial.println("Dispense magnesium");
       dispense(magnesium);
-    } else if (message == "reset_error") {
+    }
+    else if (message == "reset_error")
+    {
       Serial.println("Reset the red blinker");
       redBreather.stopBreathing();
-      client.publish("pilldispenser/state", "ready");
-    } else {
+      client.publish(stateTopic, "ready");
+    }
+    else
+    {
       Serial.println("Command unknown");
     }
   }
 }
-
-
 
 void moveTo(int *servo, int position, int duration){
   int oldPosition = servo[4];

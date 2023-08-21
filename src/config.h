@@ -1,3 +1,10 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+extern const char *MQTT_DEVICE_NAME;
+extern const char *commandTopic;
+extern const char *stateTopic;
+
 extern const int SENSOR_PIN;
 extern const int RED_LED_PIN;
 extern const int WHITE_LED_PIN;
@@ -23,3 +30,5 @@ extern int omega[];
 extern int magnesium[];
 
 extern int order[];
+
+#endif
