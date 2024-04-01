@@ -4,7 +4,14 @@ The Smart Pill Dispenser is an automated system designed to reliably dispense su
 
 ## Overview
 
-This system utilizes a servo-controlled rotating disc for precise dispensing, ensuring each pill is delivered from its individual reservoir to the collection cup. It features a robust web interface for scheduling and control, utilizing MQTT commands for easy integration into existing smart home setups. This README outlines the hardware components, software setup, and usage instructions to get your Smart Pill Dispenser up and running.
+The Smart Pill Dispenser is an innovative solution designed to automate the process of dispensing pills, making it an essential tool for individuals managing supplements or medications. Utilizing a servo-controlled rotating disc, this system precisely dispenses pills from individual reservoirs into a collection cup. It is equipped with a robust web interface for easy scheduling and control, using MQTT commands for seamless integration into existing smart home setups like Home Assistant. This README provides a detailed guide on the hardware components, software setup, and usage instructions to get your Smart Pill Dispenser operational.
+
+<div style="display:flex; justify-content:space-between; align-items:center;">
+  <img src="https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_front.png?raw=true" alt="Front View of Pill Dispenser" width="49%"/>
+  <img src="https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_disks.png?raw=true" alt="Rotating Discs" width="49%"/>
+</div>
+
+
 
 ## Hardware
 
@@ -19,8 +26,6 @@ This system utilizes a servo-controlled rotating disc for precise dispensing, en
 ### Assembly
 
 1. **3D Printed Parts:** Utilize the provided CAD models (`F3D` and `STEP` files) to print the physical components of the dispenser.
-   - `render_front.png`: ![Front View of Pill Dispenser](https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_front.png?raw=true)
-   - `render_disks.png`: ![Rotating Discs](https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_disks.png?raw=true)
 2. **Servo Motor Installation:** Fit the servo motor to the rotating disc ensuring it aligns correctly with the pill reservoirs.
 3. **Final Assembly:** Follow the detailed assembly guide in the `hardware` folder to put together all parts of the pill dispenser.
 
