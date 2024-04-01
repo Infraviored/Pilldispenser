@@ -196,7 +196,7 @@ void detect_collection()
   {
     step_value = 0;
   }
-  collection_value = 10 * step_value + 0.95 * collection_value;
+  collection_value = 10 * step_value + collection_threshold_factor * collection_value;
   Serial.println(collection_value);
   if(collection_value > collection_threshold)
   {

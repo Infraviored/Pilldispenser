@@ -17,7 +17,8 @@ const int WHITE_LED_PIN = D1;
 
 // Threshold value for triggering the sensor
 const int drop_threshold = 20;
-const int collection_threshold = 1000;
+const int collection_threshold = 1200;
+const float collection_threshold_factor = 0.93;
 
 const int lowestPWM = 415;
 const int highestPWM = 2575;

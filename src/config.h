@@ -11,6 +11,7 @@ extern const int WHITE_LED_PIN;
 
 extern const int drop_threshold;
 extern const int collection_threshold;
+extern const float collection_threshold_factor;
 extern const int lowestPWM;
 extern const int highestPWM;
 extern const int rotationBeforeDrop;
