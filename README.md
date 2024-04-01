@@ -8,7 +8,7 @@ The Smart Pill Dispenser is an innovative solution designed to automate the proc
 
 <div style="display:flex; justify-content:space-between; align-items:center;">
   <img src="https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_front.png?raw=true" alt="Front View of Pill Dispenser" width="49%"/>
-  <img src="https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_disks.png?raw=true" alt="Rotating Discs" width="49%"/>
+  <img src="https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_rear.png?raw=true" alt="Rotating Discs" width="49%"/>
 </div>
 
 
