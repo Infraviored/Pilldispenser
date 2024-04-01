@@ -19,8 +19,8 @@ This system utilizes a servo-controlled rotating disc for precise dispensing, en
 ### Assembly
 
 1. **3D Printed Parts:** Utilize the provided CAD models (`F3D` and `STEP` files) to print the physical components of the dispenser.
-   - `render_front.png`: ![Front View of Pill Dispenser](path/to/render_front.png)
-   - `render_disks.png`: ![Rotating Discs](path/to/render_disks.png)
+   - `render_front.png`: ![Front View of Pill Dispenser](https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_front.png?raw=true)
+   - `render_disks.png`: ![Rotating Discs](https://github.com/Infraviored/Pilldispenser/blob/main/CAD/renders/render_disks.png?raw=true)
 2. **Servo Motor Installation:** Fit the servo motor to the rotating disc ensuring it aligns correctly with the pill reservoirs.
 3. **Final Assembly:** Follow the detailed assembly guide in the `hardware` folder to put together all parts of the pill dispenser.
 
